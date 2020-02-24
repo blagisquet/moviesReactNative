@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, TextInput, Button, Text, FlatList } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, TextInput, Button, Text, FlatList } from 'react-native';
 
 import FilmItem from './FilmItem';
 
@@ -10,14 +10,29 @@ export default class Search extends React.Component {
     super(props);
     this.searchedText = '';
     this.state = {
-      films: []
+      films: [],
+      isLoading: false
     };
+  }
+
+  _displayLoading() {
+    if(this.state.isLoading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size='large' />
+        </View>
+      )
+    }
   }
 
   _loadFilms() {
     if (this.searchedText.length > 0) {
+      this.setState({ isLoading: true })
       getFilmsFromApiWithSearchedText(this.searchedText).then(data => {
-        this.setState({ films: data.results })
+        this.setState({
+          films: data.results,
+          isLoading: false
+        })
       })
     }
   }
@@ -27,6 +42,7 @@ export default class Search extends React.Component {
   }
 
   render() {
+    console.log(this.state.isLoading);
     return (
       <View style={styles.mainContainer}>
         <TextInput
@@ -39,7 +55,9 @@ export default class Search extends React.Component {
         <FlatList
           data={this.state.films}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <FilmItem film={item} />} />
+          renderItem={({ item }) => <FilmItem film={item} />} 
+        />
+        {this._displayLoading()}
       </View>
     );
   }
@@ -57,5 +75,14 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
     borderWidth: 1,
     paddingLeft: 5
+  },
+  loadingContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 100,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center'
   }
 })
